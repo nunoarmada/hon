@@ -1,12 +1,13 @@
 import logging
+from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
 import voluptuous as vol  # type: ignore[import-untyped]
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv, aiohttp_client
-from homeassistant.helpers.typing import HomeAssistantType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from pyhon import Hon
 
@@ -27,7 +28,7 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     session = aiohttp_client.async_get_clientsession(hass)
     if (config_dir := hass.config.config_dir) is None:
         raise ValueError("Missing Config Dir")
@@ -45,22 +46,54 @@ async def async_setup_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool
         entry, data={**entry.data, CONF_REFRESH_TOKEN: hon.api.auth.refresh_token}
     )
 
+    async def async_update_data() -> dict[str, Any]:
+        try:
+            appliances_data = await hon.api.load_appliances()
+            if not isinstance(appliances_data, list):
+                _LOGGER.warning(
+                    "Unexpected appliances_data type: %s", type(appliances_data)
+                )
+                return {}
+            for new_appliance_data in appliances_data:
+                if not isinstance(new_appliance_data, dict):
+                    continue
+                mac = new_appliance_data.get("macAddress")
+                if not mac:
+                    continue
+                for appliance in hon.appliances:
+                    if appliance.mac_address == mac:
+                        appliance._data = new_appliance_data
+                        break
+        except Exception as exc:
+            _LOGGER.warning("Error during Hon API poll: %s", exc)
+        return {}
+
     coordinator: DataUpdateCoordinator[dict[str, Any]] = DataUpdateCoordinator(
-        hass, _LOGGER, name=DOMAIN
+        hass,
+        _LOGGER,
+        name=DOMAIN,
+        update_method=async_update_data,
+        update_interval=timedelta(seconds=60),
     )
-    hon.subscribe_updates(coordinator.async_set_updated_data)
+
+    def make_threadsafe_callback(callback):
+        def wrapper(*args, **kwargs):
+            hass.loop.call_soon_threadsafe(callback, *args, **kwargs)
+
+        return wrapper
+
+    hon.subscribe_updates(
+        make_threadsafe_callback(coordinator.async_set_updated_data)
+    )
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.unique_id] = {"hon": hon, "coordinator": coordinator}
 
-    for platform in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(entry, platform)
-        )
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 
-async def async_unload_entry(hass: HomeAssistantType, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     refresh_token = hass.data[DOMAIN][entry.unique_id]["hon"].api.auth.refresh_token
 
     hass.config_entries.async_update_entry(
@@ -68,6 +101,7 @@ async def async_unload_entry(hass: HomeAssistantType, entry: ConfigEntry) -> boo
     )
     unload = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload:
+        hass.data[DOMAIN].pop(entry.unique_id, None)
         if not hass.data[DOMAIN]:
             hass.data.pop(DOMAIN, None)
     return unload

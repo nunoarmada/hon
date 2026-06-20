@@ -2294,7 +2294,20 @@
                     "email": "Email",
                     "password": "Password"
                 }
+            },
+            "reauth_confirm": {
+                "title": "Reauthenticate hOn",
+                "description": "Your hOn session expired. Re-enter the password for {email}."
             }
+        },
+        "error": {
+            "invalid_auth": "Invalid email or password. Use your hOn account credentials (not Google sign-in if 2FA is enabled).",
+            "cannot_connect": "Could not connect to the hOn service. Check your network and try again.",
+            "unknown": "Unexpected error during login. Check Home Assistant logs for details."
+        },
+        "abort": {
+            "already_configured": "This hOn account is already configured.",
+            "reauth_successful": "Reauthentication successful."
         }
     }
 }
