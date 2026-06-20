@@ -43,25 +43,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: HonConfigEntry) -> bool:
     )
 
     async def async_update_data() -> dict[str, Any]:
-        try:
-            appliances_data = await hon.api.load_appliances()
-            if not isinstance(appliances_data, list):
+        for appliance in hon.appliances:
+            try:
+                await appliance.update()
+            except Exception as exc:
                 _LOGGER.warning(
-                    "Unexpected appliances_data type: %s", type(appliances_data)
+                    "Error refreshing %s: %s", appliance.mac_address, exc
                 )
-                return {}
-            for new_appliance_data in appliances_data:
-                if not isinstance(new_appliance_data, dict):
-                    continue
-                mac = new_appliance_data.get("macAddress")
-                if not mac:
-                    continue
-                for appliance in hon.appliances:
-                    if appliance.mac_address == mac:
-                        appliance._data = new_appliance_data
-                        break
-        except Exception as exc:
-            _LOGGER.warning("Error during Hon API poll: %s", exc)
         return {}
 
     coordinator: DataUpdateCoordinator[dict[str, Any]] = DataUpdateCoordinator(
@@ -70,7 +58,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: HonConfigEntry) -> bool:
         config_entry=entry,
         name=DOMAIN,
         update_method=async_update_data,
-        update_interval=timedelta(seconds=60),
+        update_interval=timedelta(minutes=5),
     )
 
     def _threadsafe_update(*args: Any, **kwargs: Any) -> None:

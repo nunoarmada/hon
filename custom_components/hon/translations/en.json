@@ -865,6 +865,9 @@
             "target_temperature": {
                 "name": "Target temperature"
             },
+            "compressor_frequency": {
+                "name": "Compressor frequency"
+            },
             "spin_speed": {
                 "name": "Spin"
             },
@@ -2068,6 +2071,15 @@
             },
             "filter_replacement": {
                 "name": "Filter replacement"
+            },
+            "pre_heat": {
+                "name": "Pre-heat"
+            },
+            "defrost_status": {
+                "name": "Defrost"
+            },
+            "temp_reached": {
+                "name": "Temperature reached"
             }
         },
         "button": {

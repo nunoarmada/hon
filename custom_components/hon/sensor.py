@@ -512,6 +512,15 @@ SENSORS: dict[str, tuple[SensorEntityDescription, ...]] = {
             translation_key="mach_modes_ac",
             option_list=const.AC_MACH_MODE,
         ),
+        HonSensorEntityDescription(
+            key="compressorFrequency",
+            name="Compressor Frequency",
+            icon="mdi:sine-wave",
+            device_class=SensorDeviceClass.FREQUENCY,
+            native_unit_of_measurement="Hz",
+            entity_registry_enabled_default=False,
+            translation_key="compressor_frequency",
+        ),
     ),
     "REF": (
         HonSensorEntityDescription(

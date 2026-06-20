@@ -122,6 +122,30 @@ BINARY_SENSORS: dict[str, tuple[HonBinarySensorEntityDescription, ...]] = {
             icon="mdi:power-cycle",
             translation_key="on",
         ),
+        HonBinarySensorEntityDescription(
+            key="attributes.parameters.preheatStatus",
+            name="Pre-Heat",
+            device_class=BinarySensorDeviceClass.RUNNING,
+            on_value=1,
+            icon="mdi:thermometer-chevron-up",
+            translation_key="pre_heat",
+        ),
+        HonBinarySensorEntityDescription(
+            key="tempStatus",
+            name="Temperature Reached",
+            device_class=BinarySensorDeviceClass.HEAT,
+            on_value=1,
+            icon="mdi:thermometer-check",
+            translation_key="temp_reached",
+        ),
+        HonBinarySensorEntityDescription(
+            key="lockStatus",
+            name="Child Lock",
+            device_class=BinarySensorDeviceClass.LOCK,
+            on_value=0,
+            icon="mdi:lock",
+            translation_key="child_lock",
+        ),
     ),
     "IH": (
         HonBinarySensorEntityDescription(
@@ -206,6 +230,13 @@ BINARY_SENSORS: dict[str, tuple[HonBinarySensorEntityDescription, ...]] = {
             key="ch2oCleaningStatus",
             name="Ch2O Cleaning",
             on_value=1,
+        ),
+        HonBinarySensorEntityDescription(
+            key="defrostStatus",
+            name="Defrost Status",
+            icon="mdi:snowflake-melt",
+            on_value=1,
+            translation_key="defrost_status",
         ),
     ),
     "REF": (
