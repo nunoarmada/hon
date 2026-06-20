@@ -1,4 +1,4 @@
-from typing import Optional, Any
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import callback
@@ -23,7 +23,7 @@ class HonEntity(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]]):
         hass: HomeAssistant,
         entry: ConfigEntry,
         device: HonAppliance,
-        description: Optional[HonEntityDescription] = None,
+        description: HonEntityDescription | None = None,
     ) -> None:
         self.coordinator = hass.data[DOMAIN][entry.unique_id]["coordinator"]
         super().__init__(self.coordinator)
