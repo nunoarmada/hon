@@ -12,7 +12,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.core import HomeAssistant
 
 from . import const
-from .const import DOMAIN
 from .entity import HonEntity
 from .util import unique_entities, get_readable
 
@@ -215,7 +214,7 @@ async def async_setup_entry(
 ) -> None:
     entities = []
     entity: HonSelectEntity | HonConfigSelectEntity
-    for device in hass.data[DOMAIN][entry.unique_id]["hon"].appliances:
+    for device in entry.runtime_data.hon.appliances:
         for description in SELECTS.get(device.appliance_type, []):
             if description.key not in device.available_settings:
                 continue

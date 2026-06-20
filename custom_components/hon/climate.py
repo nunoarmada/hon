@@ -24,7 +24,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from pyhon.appliance import HonAppliance
 from pyhon.parameter.range import HonParameterRange
 
-from .const import HON_HVAC_MODE, HON_FAN, DOMAIN, HON_HVAC_PROGRAM
+from .const import HON_HVAC_MODE, HON_FAN, HON_HVAC_PROGRAM
 from .entity import HonEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -107,7 +107,7 @@ async def async_setup_entry(
 ) -> None:
     entities = []
     entity: HonClimateEntity | HonACClimateEntity
-    for device in hass.data[DOMAIN][entry.unique_id]["hon"].appliances:
+    for device in entry.runtime_data.hon.appliances:
         for description in CLIMATES.get(device.appliance_type, []):
             if isinstance(description, HonACClimateEntityDescription):
                 if description.key not in list(device.commands):

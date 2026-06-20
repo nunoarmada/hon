@@ -9,7 +9,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.core import HomeAssistant
 from pyhon.appliance import HonAppliance
 
-from .const import DOMAIN
 from .entity import HonEntity
 from .typedefs import HonButtonType
 
@@ -59,7 +58,7 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     entities: list[HonButtonType] = []
-    for device in hass.data[DOMAIN][entry.unique_id]["hon"].appliances:
+    for device in entry.runtime_data.hon.appliances:
         for description in BUTTONS.get(device.appliance_type, []):
             if not device.commands.get(description.key):
                 continue

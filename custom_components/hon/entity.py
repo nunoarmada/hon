@@ -1,13 +1,12 @@
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
+    DataUpdateCoordinator,
 )
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from pyhon.appliance import HonAppliance
 
 from .const import DOMAIN
@@ -25,9 +24,9 @@ class HonEntity(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]]):
         device: HonAppliance,
         description: HonEntityDescription | None = None,
     ) -> None:
-        self.coordinator = hass.data[DOMAIN][entry.unique_id]["coordinator"]
+        self.coordinator = entry.runtime_data.coordinator
         super().__init__(self.coordinator)
-        self._hon = hass.data[DOMAIN][entry.unique_id]["hon"]
+        self._hon = entry.runtime_data.hon
         self._hass = hass
         self._device: HonAppliance = device
 

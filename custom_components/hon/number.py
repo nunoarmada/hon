@@ -15,7 +15,6 @@ from homeassistant.core import HomeAssistant
 from pyhon.appliance import HonAppliance
 from pyhon.parameter.range import HonParameterRange
 
-from .const import DOMAIN
 from .entity import HonEntity
 from .util import unique_entities
 
@@ -211,7 +210,7 @@ async def async_setup_entry(
 ) -> None:
     entities = []
     entity: HonNumberEntity | HonConfigNumberEntity
-    for device in hass.data[DOMAIN][entry.unique_id]["hon"].appliances:
+    for device in entry.runtime_data.hon.appliances:
         for description in NUMBERS.get(device.appliance_type, []):
             if description.key not in device.available_settings:
                 continue

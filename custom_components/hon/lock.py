@@ -9,7 +9,6 @@ from homeassistant.core import HomeAssistant
 from pyhon.parameter.base import HonParameter
 from pyhon.parameter.range import HonParameterRange
 
-from .const import DOMAIN
 from .entity import HonEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -29,7 +28,7 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     entities = []
-    for device in hass.data[DOMAIN][entry.unique_id]["hon"].appliances:
+    for device in entry.runtime_data.hon.appliances:
         for description in LOCKS.get(device.appliance_type, []):
             if (
                 f"settings.{description.key}" not in device.available_settings

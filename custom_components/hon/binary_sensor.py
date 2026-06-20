@@ -11,7 +11,6 @@ from homeassistant.core import callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
 from .entity import HonEntity
 from .util import unique_entities
 
@@ -320,7 +319,7 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     entities = []
-    for device in hass.data[DOMAIN][entry.unique_id]["hon"].appliances:
+    for device in entry.runtime_data.hon.appliances:
         for description in BINARY_SENSORS.get(device.appliance_type, []):
             if device.get(description.key) is None:
                 continue
