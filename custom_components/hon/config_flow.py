@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from typing import Any
 
 import aiohttp
@@ -9,7 +8,7 @@ from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.helpers import aiohttp_client
-from pyhon import Hon
+from pyhon.connection.api import HonAPI
 from pyhon.exceptions import HonAuthenticationError
 
 from .const import CONF_REFRESH_TOKEN, DOMAIN, MOBILE_ID
@@ -28,15 +27,19 @@ class HonFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self, hass: HomeAssistant, email: str, password: str
     ) -> tuple[str | None, str | None]:
         session = aiohttp_client.async_get_clientsession(hass)
+        # Validate credentials with an auth-only API client. The full
+        # ``Hon().create()`` also loads appliances and starts the MQTT client,
+        # which performs blocking ``importlib.metadata`` reads (awsiotsdk) in
+        # the event loop. None of that is needed just to check the login.
+        api = HonAPI(
+            email=email,
+            password=password,
+            mobile_id=MOBILE_ID,
+            session=session,
+        )
         try:
-            hon = await Hon(
-                email=email,
-                password=password,
-                mobile_id=MOBILE_ID,
-                session=session,
-                test_data_path=Path(hass.config.config_dir),
-            ).create()
-            return hon.api.auth.refresh_token, None
+            await api.create()
+            return api.auth.refresh_token, None
         except HonAuthenticationError:
             return None, "invalid_auth"
         except aiohttp.ClientError:
@@ -44,6 +47,9 @@ class HonFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         except Exception:
             _LOGGER.exception("Unexpected error during hOn login")
             return None, "unknown"
+        finally:
+            # Only closes handler resources; the shared HA session is kept open.
+            await api.close()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
