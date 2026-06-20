@@ -81,7 +81,7 @@ class HonButtonEntity(HonEntity, ButtonEntity):
         return (
             super().available
             and int(self._device.get("remoteCtrValid", "1")) == 1
-            and self._device.connection
+            and self._device_connected
         )
 
 

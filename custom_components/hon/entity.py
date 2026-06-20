@@ -38,6 +38,18 @@ class HonEntity(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]]):
         self._handle_coordinator_update(update=False)
 
     @property
+    def _device_connected(self) -> bool:
+        """Return the real connection state of the appliance.
+
+        pyhOn's ``HonAppliance.connection`` is initialised once from empty
+        attributes and never updated, so it stays ``True`` even when the
+        appliance is physically offline. Derive the state from the live
+        ``lastConnEvent.category`` attribute instead (#329). Absence of the
+        attribute is treated as connected to preserve previous behaviour.
+        """
+        return self._device.get("attributes.lastConnEvent.category") != "DISCONNECTED"
+
+    @property
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
             identifiers={(DOMAIN, self._device.unique_id)},
