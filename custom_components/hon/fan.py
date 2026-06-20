@@ -61,7 +61,7 @@ class HonFanEntity(HonEntity, FanEntity):
         description: FanEntityDescription,
     ) -> None:
         self._attr_supported_features = FanEntityFeature.SET_SPEED
-        self._wind_speed: HonParameterRange
+        self._wind_speed: HonParameterRange | None = None
         self._speed_range: tuple[int, int]
         self._command, self._parameter = description.key.split(".")
 
@@ -128,4 +128,4 @@ class HonFanEntity(HonEntity, FanEntity):
 
     @property
     def available(self) -> bool:
-        return super().available and len(self._wind_speed.values) > 1
+        return super().available and self._wind_speed is not None and len(self._wind_speed.values) > 1

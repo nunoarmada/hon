@@ -72,11 +72,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: HonConfigEntry) -> bool:
     )
 
     def _threadsafe_update(*args: Any, **kwargs: Any) -> None:
-        hass.loop.call_soon_threadsafe(
-            coordinator.async_set_updated_data, *args, **kwargs
-        )
+        hass.loop.call_soon_threadsafe(coordinator.async_set_updated_data, {})
 
     hon.subscribe_updates(_threadsafe_update)
+
+    await coordinator.async_config_entry_first_refresh()
 
     entry.runtime_data = HonData(hon=hon, coordinator=coordinator)
 
@@ -90,14 +90,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: HonConfigEntry) -> bool
         entry, data={**entry.data, CONF_REFRESH_TOKEN: refresh_token}
     )
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        hon = entry.runtime_data.hon
-        mqtt = getattr(hon, "_mqtt_client", None)
-        task = getattr(mqtt, "_watchdog_task", None)
-        if task is not None and not task.done():
-            task.cancel()
-        try:
-            await hon.close()
-        except Exception as err:
-            _LOGGER.debug("Error closing hOn connection: %s", err)
+    hon = entry.runtime_data.hon
+    mqtt = getattr(hon, "_mqtt_client", None)
+    task = getattr(mqtt, "_watchdog_task", None)
+    if task is not None and not task.done():
+        task.cancel()
+    try:
+        await hon.close()
+    except Exception as err:
+        _LOGGER.debug("Error closing hOn connection: %s", err)
     return unload_ok

@@ -81,7 +81,7 @@ SENSORS: dict[str, tuple[SensorEntityDescription, ...]] = {
             key="currentElectricityUsed",
             name="Current Electricity Used",
             state_class=SensorStateClass.MEASUREMENT,
-            device_class=SensorDeviceClass.POWER,
+            device_class=SensorDeviceClass.ENERGY,
             native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
             icon="mdi:lightning-bolt",
             translation_key="energy_current",
@@ -845,14 +845,16 @@ class HonSensorEntity(HonEntity, SensorEntity):
         value = self._device.get(self.entity_description.key, "")
         if self.entity_description.key == "programName":
             if not (options := self._device.settings.get("startProgram.program")):
-                raise ValueError
+                _LOGGER.warning("Missing startProgram.program setting for %s", self._device.nick_name)
+                return
             self._attr_options = options.values + ["No Program"]
         elif self.entity_description.option_list is not None:
             self._attr_options = list(self.entity_description.option_list.values())
             value = str(get_readable(self.entity_description, value))
         if not value and self.entity_description.state_class is not None:
             self._attr_native_value = 0
-        self._attr_native_value = value
+        else:
+            self._attr_native_value = value
         if update:
             self.async_write_ha_state()
 

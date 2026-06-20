@@ -27,7 +27,6 @@ class HonEntity(CoordinatorEntity[DataUpdateCoordinator[dict[str, Any]]]):
         self.coordinator = entry.runtime_data.coordinator
         super().__init__(self.coordinator)
         self._hon = entry.runtime_data.hon
-        self._hass = hass
         self._device: HonAppliance = device
 
         if description is not None:

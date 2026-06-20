@@ -100,7 +100,7 @@ class HonDeviceInfo(HonEntity, ButtonEntity):
     async def async_press(self) -> None:
         title = f"{self._device.nick_name} Device Info"
         persistent_notification.async_create(
-            self._hass, f"````\n```\n{self._device.diagnose}\n```\n````", title
+            self.hass, f"````\n```\n{self._device.diagnose}\n```\n````", title
         )
         _LOGGER.info(self._device.diagnose.replace(" ", "\u200B "))
 
@@ -118,7 +118,7 @@ class HonDataArchive(HonEntity, ButtonEntity):
         self._attr_entity_registry_enabled_default = False
 
     async def async_press(self) -> None:
-        if (config_dir := self._hass.config.config_dir) is None:
+        if (config_dir := self.hass.config.config_dir) is None:
             raise ValueError("Missing Config Dir")
         path = Path(config_dir) / "www"
         data = await self._device.data_archive(path)
@@ -128,4 +128,4 @@ class HonDataArchive(HonEntity, ButtonEntity):
             f"Use this data for [GitHub Issues of Haier hOn](https://github.com/Andre0512/hon).<br/>"
             f"Or add it to the [hon-test-data collection](https://github.com/Andre0512/hon-test-data)."
         )
-        persistent_notification.async_create(self._hass, text, title)
+        persistent_notification.async_create(self.hass, text, title)

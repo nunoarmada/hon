@@ -42,7 +42,7 @@ class HonFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             return api.auth.refresh_token, None
         except HonAuthenticationError:
             return None, "invalid_auth"
-        except aiohttp.ClientError:
+        except (aiohttp.ClientError, TimeoutError):
             return None, "cannot_connect"
         except Exception:
             _LOGGER.exception("Unexpected error during hOn login")

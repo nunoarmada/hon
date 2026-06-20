@@ -93,7 +93,7 @@ class HonLightEntity(HonEntity, LightEntity):
     @property
     def is_on(self) -> bool:
         """Return true if light is on."""
-        return bool(self._device.get(self.entity_description.key.split(".")[-1]) > 0)
+        return bool(self._device.get(self.entity_description.key.split(".")[-1], 0) > 0)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on or control the light."""

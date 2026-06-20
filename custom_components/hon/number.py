@@ -247,7 +247,8 @@ class HonNumberEntity(HonEntity, NumberEntity):
 
     @property
     def native_value(self) -> float | None:
-        if value := self._device.get(self.entity_description.key.split(".")[-1]):
+        value = self._device.get(self.entity_description.key.split(".")[-1])
+        if value is not None:
             return float(value)
         return None
 

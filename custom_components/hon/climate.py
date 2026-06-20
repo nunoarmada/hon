@@ -141,7 +141,10 @@ class HonACClimateEntity(HonEntity, ClimateEntity):
 
         self._attr_hvac_modes = [HVACMode.OFF]
         for mode in device.settings["settings.machMode"].values:
-            self._attr_hvac_modes.append(HON_HVAC_MODE[int(mode)])
+            try:
+                self._attr_hvac_modes.append(HON_HVAC_MODE[int(mode)])
+            except KeyError:
+                continue
         self._attr_preset_modes = []
         for mode in device.settings["startProgram.program"].values:
             self._attr_preset_modes.append(mode)
@@ -193,7 +196,7 @@ class HonACClimateEntity(HonEntity, ClimateEntity):
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             return
         self._preserve_ac_mode_settings()
-        self._device.settings["settings.tempSel"].value = str(int(temperature))
+        self._device.settings["settings.tempSel"].value = str(int(round(temperature)))
         await self._device.commands["settings"].send()
         self.async_write_ha_state()
 
@@ -286,13 +289,16 @@ class HonACClimateEntity(HonEntity, ClimateEntity):
         """Return the list of available fan modes."""
         fan_modes = []
         for mode in reversed(self._device.settings["settings.windSpeed"].values):
-            fan_modes.append(HON_FAN[int(mode)])
+            try:
+                fan_modes.append(HON_FAN[int(mode)])
+            except KeyError:
+                continue
         return fan_modes
 
     @property
     def fan_mode(self) -> str | None:
         """Return the fan setting."""
-        return HON_FAN[self._device.get("windSpeed")]
+        return HON_FAN.get(self._device.get("windSpeed"))
 
     async def async_set_fan_mode(self, fan_mode: str) -> None:
         self._preserve_ac_mode_settings()
@@ -398,7 +404,7 @@ class HonClimateEntity(HonEntity, ClimateEntity):
     async def async_set_temperature(self, **kwargs: Any) -> None:
         if (temperature := kwargs.get(ATTR_TEMPERATURE)) is None:
             return
-        self._device.settings[self.entity_description.key].value = str(int(temperature))
+        self._device.settings[self.entity_description.key].value = str(int(round(temperature)))
         await self._device.commands["settings"].send()
         self.async_write_ha_state()
 

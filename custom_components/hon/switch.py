@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntityDescription, SwitchEntity
@@ -11,6 +11,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.core import HomeAssistant
 from pyhon.parameter.base import HonParameter
 from pyhon.parameter.range import HonParameterRange
+
+from homeassistant.util import dt as dt_util
 
 from .entity import HonEntity
 from .util import unique_entities
@@ -529,8 +531,8 @@ class HonControlSwitchEntity(HonEntity, SwitchEntity):
         result = {}
         if remaining_time := self._device.get("remainingTimeMM", 0):
             delay_time = self._device.get("delayTime", 0)
-            result["start_time"] = datetime.now() + timedelta(minutes=delay_time)
-            result["end_time"] = datetime.now() + timedelta(
+            result["start_time"] = dt_util.now() + timedelta(minutes=delay_time)
+            result["end_time"] = dt_util.now() + timedelta(
                 minutes=delay_time + remaining_time
             )
         return result
