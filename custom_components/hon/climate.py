@@ -198,9 +198,11 @@ class HonACClimateEntity(HonEntity, ClimateEntity):
         self._attr_hvac_mode = hvac_mode
         if hvac_mode == HVACMode.OFF:
             await self._device.commands["stopProgram"].send()
-            self._device.settings["settings.onOffStatus"].value = "2"
+            if on_off := self._device.settings.get("settings.onOffStatus"):
+                on_off.value = "2"
         else:
-            self._device.settings["settings.onOffStatus"].value = "1"
+            if on_off := self._device.settings.get("settings.onOffStatus"):
+                on_off.value = "1"
             setting = self._device.settings["settings.machMode"]
             modes = {HON_HVAC_MODE[int(number)]: number for number in setting.values}
             if hvac_mode in modes:
@@ -213,11 +215,17 @@ class HonACClimateEntity(HonEntity, ClimateEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self._device.commands["startProgram"].send()
-        self._device.sync_command("startProgram", "settings")
+        try:
+            self._device.sync_command("startProgram", "settings")
+        except ValueError as err:
+            _LOGGER.warning(
+                "Could not sync command startProgram to settings: %s", err
+            )
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self._device.commands["stopProgram"].send()
-        self._device.settings["settings.onOffStatus"].value = "2"
+        if on_off := self._device.settings.get("settings.onOffStatus"):
+            on_off.value = "2"
         self.async_write_ha_state()
 
     @property
@@ -229,7 +237,12 @@ class HonACClimateEntity(HonEntity, ClimateEntity):
         """Set the new preset mode."""
         if program := self._device.settings.get("startProgram.program"):
             program.value = preset_mode
-        self._device.sync_command("startProgram", "settings")
+        try:
+            self._device.sync_command("startProgram", "settings")
+        except ValueError as err:
+            _LOGGER.warning(
+                "Could not sync command startProgram to settings: %s", err
+            )
         self._set_temperature_bound()
         self._handle_coordinator_update(update=False)
         self.coordinator.async_set_updated_data({})
@@ -405,7 +418,12 @@ class HonClimateEntity(HonEntity, ClimateEntity):
         zone = self._device.settings.get(f"{command}.zone")
         if zone and isinstance(self.entity_description.name, str):
             zone.value = self.entity_description.name.lower()
-        self._device.sync_command(command, "settings")
+        try:
+            self._device.sync_command(command, "settings")
+        except ValueError as err:
+            _LOGGER.warning(
+                "Could not sync command %s to settings: %s", command, err
+            )
         self._set_temperature_bound()
         self._attr_preset_mode = preset_mode
         self.coordinator.async_set_updated_data({})

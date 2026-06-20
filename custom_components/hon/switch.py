@@ -487,14 +487,28 @@ class HonControlSwitchEntity(HonEntity, SwitchEntity):
         return self._device.get(self.entity_description.key, False)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        self._device.sync_command(self.entity_description.turn_on_key, "settings")
+        try:
+            self._device.sync_command(self.entity_description.turn_on_key, "settings")
+        except ValueError as err:
+            _LOGGER.warning(
+                "Could not sync command %s to settings: %s",
+                self.entity_description.turn_on_key,
+                err,
+            )
         self.coordinator.async_set_updated_data({})
         await self._device.commands[self.entity_description.turn_on_key].send()
         self._device.attributes[self.entity_description.key] = True
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        self._device.sync_command(self.entity_description.turn_off_key, "settings")
+        try:
+            self._device.sync_command(self.entity_description.turn_off_key, "settings")
+        except ValueError as err:
+            _LOGGER.warning(
+                "Could not sync command %s to settings: %s",
+                self.entity_description.turn_off_key,
+                err,
+            )
         self.coordinator.async_set_updated_data({})
         await self._device.commands[self.entity_description.turn_off_key].send()
         self._device.attributes[self.entity_description.key] = False

@@ -315,7 +315,12 @@ class HonSelectEntity(HonEntity, SelectEntity):
         command = self.entity_description.key.split(".")[0]
         await self._device.commands[command].send()
         if command != "settings":
-            self._device.sync_command(command, "settings")
+            try:
+                self._device.sync_command(command, "settings")
+            except ValueError as err:
+                _LOGGER.warning(
+                    "Could not sync command %s to settings: %s", command, err
+                )
         self.coordinator.async_set_updated_data({})
 
     @property

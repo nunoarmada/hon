@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 
 from homeassistant.components.number import (
@@ -17,6 +18,8 @@ from pyhon.parameter.range import HonParameterRange
 
 from .entity import HonEntity
 from .util import unique_entities
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -255,7 +258,12 @@ class HonNumberEntity(HonEntity, NumberEntity):
         command = self.entity_description.key.split(".")[0]
         await self._device.commands[command].send()
         if command != "settings":
-            self._device.sync_command(command, "settings")
+            try:
+                self._device.sync_command(command, "settings")
+            except ValueError as err:
+                _LOGGER.warning(
+                    "Could not sync command %s to settings: %s", command, err
+                )
         self.coordinator.async_set_updated_data({})
 
     @callback
